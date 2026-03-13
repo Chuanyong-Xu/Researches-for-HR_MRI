@@ -22,9 +22,8 @@
 
   (3) GLM analysis for fMRI, MVPA for fMRI, RSA for fMRI and RNN
   ------------------ folder: fMRI
-  Due to the limitation of upload, in this folder, only the 2nd results of each GLM were upload.
-
   
-  1) GLM analysis code for MRI in folder of ---spmGLM---, the order was marker by 'Sxxxxx.m';
-  2) MVPA code for MRI in folder of ---MVPA---, the order was marker by 'Sxxxxx.py';
-  3) RSA or Geometry analysis code for fMRI and RNN in folder of ---RSA_Geometry---.
+  1) Due to the limitation of upload, in this folder, only the 2nd results of each GLM were upload.
+  2) GLM analysis code for MRI in folder of ---spmGLM---, the order was marker by 'Sxxxxx.m';
+  3) MVPA code for MRI in folder of ---MVPA---, the order was marker by 'Sxxxxx.py';
+  4) RSA or Geometry analysis code for fMRI and RNN in folder of ---RSA_Geometry---.
