@@ -1,6 +1,8 @@
 # Resarches-for-HR_MRI
+  
   (1) for behavioral analysis and Bayesian modelling
   ------------------ folder: MRI_behavioural
+  
   1) run 'm_1_psychometric_switch.m' for Bayesian modelling;
   2) run the .py scripts in each of the subfolder in Model_fitting_Tom folder, for preparing the data and alterative model fitting;
   3) run 'm_5_CollectData_for_ModelCompare.m' for model comparing (LL, AIC, BIC);
@@ -9,6 +11,7 @@
   ------------------ folder: RNN/DeepRL_RNN/script
   1) run 'trian_valid.py' for training;
   2) run 'test.py' for testing;
+  
   ------------------ folder: RNN
   3) run 'S0_CollectData_ForRNN.m' for organizing data;
   4) run 'S1_prSwi_MDS.m' for plotting the RNN performance compared to human;
@@ -19,8 +22,7 @@
 
   (3) GLM analysis for fMRI, MVPA for fMRI, RSA for fMRI and RNN
   ------------------ folder: fMRI
+  
   1) GLM analysis code for MRI in folder of ---spmGLM---, the order was marker by 'Sxxxxx.m';
-
   2) MVPA code for MRI in folder of ---MVPA---, the order was marker by 'Sxxxxx.py';
-
   3) RSA or Geometry analysis code for fMRI and RNN in folder of ---RSA_Geometry---.
