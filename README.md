@@ -1,4 +1,4 @@
-# Resarches-for-HR_MRI
+# Resarches-for-HR_MRI, the code and data for main results has been upload here
   
   (1) for behavioral analysis and Bayesian modelling
   ------------------ folder: MRI_behavioural
