@@ -13,12 +13,12 @@
   2) run 'test.py' for testing;
   
   ------------------ folder: RNN
-  3) run 'S0_CollectData_ForRNN.m' for organizing data;
-  4) run 'S1_prSwi_MDS.m' for plotting the RNN performance compared to human;
-  5) run 'S2_prepare_RNNforRDM.m' for extracting the hidden layer activations for RSA analysis;
-  6) run 'S03_1_Decoding_mvpa_ners_rois_individuals.m' for Gaussian fitting for errors;
-  7) run 'S03_2_Decoding_mvpa_diffs_rois_individuals.m' for Gaussian fitting for difficulty;
-  8) run 'S04_Decoding_mvpa_NersDiffs_rois_individuals.m' for 3-D visualization for combination of the errors and difficulty.
+  1) run 'S0_CollectData_ForRNN.m' for organizing data;
+  2) run 'S1_prSwi_MDS.m' for plotting the RNN performance compared to human;
+  3) run 'S2_prepare_RNNforRDM.m' for extracting the hidden layer activations for RSA analysis;
+  4) run 'S03_1_Decoding_mvpa_ners_rois_individuals.m' for Gaussian fitting for errors;
+  5) run 'S03_2_Decoding_mvpa_diffs_rois_individuals.m' for Gaussian fitting for difficulty;
+  6) run 'S04_Decoding_mvpa_NersDiffs_rois_individuals.m' for 3-D visualization for combination of the errors and difficulty.
 
   (3) GLM analysis for fMRI, MVPA for fMRI, RSA for fMRI and RNN
   ------------------ folder: fMRI
