@@ -1,18 +1,18 @@
 # Resarches-for-HR_MRI, the code and data for main results has been upload here
   
   ## for behavioral analysis and Bayesian modelling (Figure 1)
-  (1)------------------ folder: MRI_behavioural
+  (1)------------------ folder: MRI_behavioural/
   
   1) run 'm_1_psychometric_switch.m' for Bayesian modelling;
-  2) run the .py scripts in each of the subfolder in Model_fitting_Tom folder, for preparing the data and alterative model fitting;
+  2) run the .py scripts in each of the subfolder in Model_fitting_Tom/ folder, for preparing the data and alterative model fitting;
   3) run 'm_5_CollectData_for_ModelCompare.m' for model comparing (LL, AIC, BIC);
   
    ## for RNN simulation (Figure 2)
- (2) ------------------ folder: RNN/DeepRL_RNN/script
+ (2) ------------------ folder: RNN/DeepRL_RNN/script/
   1) run 'trian_valid.py' for training;
   2) run 'test.py' for testing;
   
-  (3)------------------ folder: RNN
+  (3)------------------ folder: RNN/
   1) run 'S0_CollectData_ForRNN.m' for organizing data;
   2) run 'S1_prSwi_MDS.m' for plotting the RNN performance compared to human;
   3) run 'S2_prepare_RNNforRDM.m' for extracting the hidden layer activations for RSA analysis;
@@ -21,9 +21,9 @@
   6) run 'S04_Decoding_mvpa_NersDiffs_rois_individuals.m' for 3-D visualization for combination of the errors and difficulty.
 
   ## GLM analysis for fMRI, MVPA for fMRI, RSA for fMRI and RNN
-  (4)------------------ folder: fMRI
+  (4)------------------ folder: fMRI/
   
   1) Due to the limitation of upload, in this folder, only the 2nd results of each GLM were upload.
-  2) GLM analysis code for MRI in folder of ---spmGLM---, the order was marker by 'Sxxxxx.m' (Figure 3, 4);
-  3) MVPA code for MRI in folder of ---MVPA---, the order was marker by 'Sxxxxx.py' (Figure 5);
-  4) RSA or Geometry analysis code for fMRI and RNN in folder of ---RSA_Geometry---, (Figure 2, 5).
+  2) GLM analysis code for MRI in folder of ---spmGLM/---, the order was marker by 'Sxxxxx.m' (Figure 3, 4);
+  3) MVPA code for MRI in folder of ---MVPA/---, the order was marker by 'Sxxxxx.py' (Figure 5);
+  4) RSA or Geometry analysis code for fMRI and RNN in folder of ---RSA_Geometry/---, (Figure 2, 5).
