@@ -1,0 +1,307 @@
+import scipy.io
+import numpy as np
+import torch
+from torch.utils.data import Dataset, DataLoader
+
+
+def extract_behavioral_data(mat_path,
+                            row1='tDev',
+                            row2='TF',
+                            row3='pr_of_switch',
+                            var_name='results'):
+    """
+    从 .mat 文件中提取 tdev、tf 和 pr_of_switch 三列数据，并添加 is_start 标记。
+
+    参数:
+    - mat_path: str，.mat 文件路径
+    - var_name: str，.mat 文件中包含行为数据的变量名，默认是 'results'
+
+    返回:
+    - tdev_array: np.ndarray，所有被试的 tdev 值
+    - tf_array: np.ndarray，所有被试的 tf 值
+    - pr_of_switch_array: np.ndarray，所有被试的 pr_of_switch 值
+    - is_start_array: np.ndarray，标记每个被试数据起始位置，起始为 1，其余为 0
+    """
+    data = scipy.io.loadmat(mat_path)
+
+    if var_name not in data:
+        raise ValueError(f"变量 '{var_name}' 不在 .mat 文件中，实际变量有：{list(data.keys())}")
+
+    results = data[var_name][0]
+
+    tdev_list = []
+    tf_list = []
+    pr_of_switch_list = []
+    is_start_list = []
+
+    for row in results:
+        tdev = row[row1].squeeze()
+        tf = row[row2].squeeze()
+        pr = row[row3].squeeze()
+
+        n = len(tdev)
+        tdev_list.extend(tdev.tolist())
+        tf_list.extend(tf.tolist())
+        pr_of_switch_list.extend(pr.tolist())
+
+        is_start = [1] + [0] * (n - 1)
+        is_start_list.extend(is_start)
+
+    return (
+        np.array(tdev_list),
+        np.array(tf_list),
+        np.array(pr_of_switch_list),
+        np.array(is_start_list)
+    )
+
+
+def reshape_own(*arrays):
+    return [a.reshape(1, -1) if len(a.shape) == 1 else a for a in arrays]
+
+
+def split_data_by_ratio(tdev,
+                        tf,
+                        pr_of_switch,
+                        is_start,
+                        train_ratio=0.6,
+                        valid_ratio=0.2,
+                        test_ratio=0.2):
+    """
+    将数据按比例分为 train，valid 和 test，并统一重塑为 (n_samples, 1)
+
+    :param tdev: np.ndarray
+    :param tf: np.ndarray
+    :param pr_of_switch: np.ndarray
+    :param is_start: np.ndarray
+    :param train_ratio: float
+    :param valid_ratio: float
+    :param test_ratio: float
+    :return: 三个元组 (train, valid, test)，每个元组为 (tdev, tf, pr_of_switch, is_start)
+    """
+    assert len(tdev) == len(tf) == len(pr_of_switch) == len(is_start), "数组长度必须一致"
+    assert abs(train_ratio + valid_ratio + test_ratio - 1.0) < 1e-6, "比例之和必须为1"
+
+    total = len(tdev)
+    train_end = int(total * train_ratio)
+    valid_end = train_end + int(total * valid_ratio)
+
+    # 划分
+    tdev_train, tdev_valid, tdev_test = tdev[:train_end], tdev[train_end:valid_end], tdev[valid_end:]
+    tf_train, tf_valid, tf_test = tf[:train_end], tf[train_end:valid_end], tf[valid_end:]
+    pr_train, pr_valid, pr_test = pr_of_switch[:train_end], pr_of_switch[train_end:valid_end], pr_of_switch[valid_end:]
+    is_start_train, is_start_valid, is_start_test = is_start[:train_end], is_start[train_end:valid_end], is_start[
+                                                                                                         valid_end:]
+
+    # 重塑为 (n_samples, 1)
+    tdev_train, tf_train, pr_train, is_start_train = reshape_own(tdev_train, tf_train, pr_train, is_start_train)
+    tdev_valid, tf_valid, pr_valid, is_start_valid = reshape_own(tdev_valid, tf_valid, pr_valid, is_start_valid)
+    tdev_test, tf_test, pr_test, is_start_test = reshape_own(tdev_test, tf_test, pr_test, is_start_test)
+
+    return (tdev_train, tf_train, pr_train, is_start_train), \
+        (tdev_valid, tf_valid, pr_valid, is_start_valid), \
+        (tdev_test, tf_test, pr_test, is_start_test)
+
+
+import torch
+import torch.nn.functional as F
+from torch.utils.data import Dataset
+
+class RNNInputDataset(Dataset):
+    def __init__(self, difficulty, switch, labels, is_start):
+        """
+        difficulty: np.ndarray，形状 (n_samples, seq_len)，元素为 1/2/3
+        switch:     np.ndarray，形状 (n_samples, seq_len)，元素为 0/1
+        is_start:   np.ndarray，形状 (n_samples, seq_len)，元素为 0/1
+        labels:     np.ndarray，形状 (n_samples, seq_len) 或 (n_samples,)
+        """
+        self.difficulty = torch.LongTensor(difficulty - 1)  # 1/2/3 -> 0/1/2
+        self.switch = torch.LongTensor(switch)              # 0/1
+        self.is_start = torch.LongTensor(is_start)          # 0/1
+
+        # 你的 target_all 是 (n_samples, T)，这里变成 (n_samples, 1, T)，与 trian_valid.py 里 targets[:, :, t] 匹配
+        self.labels = torch.tensor(labels, dtype=torch.float32).unsqueeze(1)
+
+    def __len__(self):
+        return len(self.difficulty)
+
+    def __getitem__(self, idx):
+        # (T,) long
+        diff_idx = self.difficulty[idx]   # 0/1/2
+        sw_idx = self.switch[idx]         # 0/1
+
+        # (T,2)
+        switch_onehot = F.one_hot(sw_idx, num_classes=2)
+        # (T,2)
+        start_onehot = F.one_hot(self.is_start[idx], num_classes=2)
+
+        # outcome: (T,) -> (T,6)
+        outcome_index = sw_idx * 3 + diff_idx              # 0..5
+        outcome_onehot = F.one_hot(outcome_index, num_classes=6)
+
+        label = self.labels[idx]  # (1, T)
+        return outcome_onehot, switch_onehot, start_onehot, label
+
+
+if __name__ == "__main__":
+    """
+    预测切换概率
+    """
+    # tdev, tf, pr_of_switch, is_start = extract_behavioral_data('../data/infer_data.mat',
+    #                                                            var_name='infer_data')
+    """
+    预测confidence
+    """
+    tdev, tf, confidence, is_start = extract_behavioral_data('../data/infer_data.mat',
+                                                             row1='tDev',
+                                                             row2='TF',
+                                                             row3='mu_switch_estimated',
+                                                             var_name='infer_data', )
+    # (tdev_train, tf_train, pr_train), (tdev_valid, tf_valid, pr_valid), (
+    # tdev_test, tf_test, pr_test) = split_data_by_ratio(tdev=tdev,
+    #                                                    tf=tf,
+    #                                                    pr_of_switch=pr_of_switch,
+    #                                                    train_ratio=0.6,
+    #                                                    test_ratio=0.2,
+    #                                                    valid_ratio=0.2, )
+    tdev, tf, pr_of_switch, is_start = reshape_own(tdev, tf, pr_of_switch, is_start)
+    print(is_start.shape)
+    print(tdev.shape)
+
+
+# ===== ADD THIS (subject-wise extraction + variable-length dataset) =====
+import torch
+import torch.nn.functional as F
+from torch.utils.data import Dataset
+import scipy.io
+import numpy as np
+
+def extract_behavioral_data_subjectwise(mat_path,
+                                        row1='tDev',
+                                        row2='TF',
+                                        row3='pr_of_switch',
+                                        var_name='results'):
+    """
+    按被试返回：每个被试一个序列（变长允许）
+    return:
+      tdev_list: [np.ndarray (Ti,)]
+      tf_list:   [np.ndarray (Ti,)]
+      y_list:    [np.ndarray (Ti,)]
+      is_start_list: [np.ndarray (Ti,)]  (每个被试首trial=1，其余=0)
+    """
+    data = scipy.io.loadmat(mat_path, struct_as_record=False, squeeze_me=True)
+    if var_name not in data:
+        raise ValueError(f"变量 '{var_name}' 不在 .mat 文件中，实际变量有：{list(data.keys())}")
+
+    results = data[var_name]
+    if np.ndim(results) == 0:
+        results = [results]
+    elif isinstance(results, np.ndarray):
+        results = results.tolist()
+
+    tdev_list, tf_list, y_list, is_start_list = [], [], [], []
+
+    for subj in results:
+        tdev = getattr(subj, row1).squeeze()
+        tf   = getattr(subj, row2).squeeze()
+        y    = getattr(subj, row3).squeeze()
+
+        tdev = np.asarray(tdev).astype(np.int64)     # difficulty 1/2/3
+        tf   = np.asarray(tf).astype(np.int64)       # switch 0/1
+        y    = np.asarray(y).astype(np.float32)
+
+        is_start = np.zeros_like(tdev, dtype=np.int64)
+        if len(is_start) > 0:
+            is_start[0] = 1
+
+        tdev_list.append(tdev)
+        tf_list.append(tf)
+        y_list.append(y)
+        is_start_list.append(is_start)
+
+    return tdev_list, tf_list, y_list, is_start_list
+
+
+
+
+# ===== ADD: subject-wise extraction + subject-wise dataset (batch_size=1 friendly) =====
+import scipy.io
+import numpy as np
+import torch
+import torch.nn.functional as F
+from torch.utils.data import Dataset
+
+def extract_behavioral_data_subjectwise(mat_path,
+                                        row1='tDev',
+                                        row2='TF',
+                                        row3='pr_of_switch',
+                                        var_name='infer_data'):
+    """
+    按被试返回：每个被试一个 trial 序列（允许变长）
+    返回:
+      tdev_list, tf_list, y_list, is_start_list  (list of 1D arrays)
+    """
+    data = scipy.io.loadmat(mat_path, struct_as_record=False, squeeze_me=True)
+    if var_name not in data:
+        raise ValueError(f"变量 '{var_name}' 不在 .mat 文件中，实际变量有：{list(data.keys())}")
+
+    results = data[var_name]
+    if np.ndim(results) == 0:
+        results = [results]
+    elif isinstance(results, np.ndarray):
+        results = results.tolist()
+
+    tdev_list, tf_list, y_list, is_start_list = [], [], [], []
+
+    for subj in results:
+        tdev = np.asarray(getattr(subj, row1)).squeeze().astype(np.int64)     # 1/2/3
+        tf   = np.asarray(getattr(subj, row2)).squeeze().astype(np.int64)     # 0/1
+        y    = np.asarray(getattr(subj, row3)).squeeze().astype(np.float32)   # target
+
+        is_start = np.zeros_like(tdev, dtype=np.int64)
+        if len(is_start) > 0:
+            is_start[0] = 1
+
+        tdev_list.append(tdev)
+        tf_list.append(tf)
+        y_list.append(y)
+        is_start_list.append(is_start)
+
+    return tdev_list, tf_list, y_list, is_start_list
+
+
+class RNNInputDatasetSubjectwise(Dataset):
+    """
+    每个 idx = 1 个被试序列（长度可不同）；batch_size=1 时无需 padding。
+    输出保持与你原 RNNInputDataset 一致:
+      outcome_onehot (T,6), switch_onehot (T,2), start_onehot (T,2), label (1,T)
+    """
+    def __init__(self, tdev_list, tf_list, y_list, is_start_list):
+        assert len(tdev_list) == len(tf_list) == len(y_list) == len(is_start_list)
+        self.tdev_list = tdev_list
+        self.tf_list = tf_list
+        self.y_list = y_list
+        self.is_start_list = is_start_list
+
+    def __len__(self):
+        return len(self.tdev_list)
+
+    def __getitem__(self, idx):
+        tdev = self.tdev_list[idx]          # (T,)
+        tf   = self.tf_list[idx]            # (T,)
+        y    = self.y_list[idx]             # (T,)
+        st   = self.is_start_list[idx]      # (T,)
+
+        diff_idx = torch.LongTensor(tdev - 1)  # 1/2/3 -> 0/1/2
+        sw_idx   = torch.LongTensor(tf)        # 0/1
+        st_idx   = torch.LongTensor(st)        # 0/1
+
+        switch_onehot = F.one_hot(sw_idx, num_classes=2)            # (T,2)
+        start_onehot  = F.one_hot(st_idx, num_classes=2)            # (T,2)
+
+        outcome_index = sw_idx * 3 + diff_idx                       # 0..5
+        outcome_onehot = F.one_hot(outcome_index, num_classes=6)    # (T,6)
+
+        label = torch.tensor(y, dtype=torch.float32).unsqueeze(0)    # (1,T)
+
+        return outcome_onehot, switch_onehot, start_onehot, label
+# ===== END ADD =====
