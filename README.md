@@ -29,3 +29,4 @@
   2) GLM analysis code for MRI in folder of ---spmGLM/---, the order was marker by 'Sxxxxx.m' (Figure 3, 4);
   3) MVPA code for MRI in folder of ---MVPA/---, the order was marker by 'Sxxxxx.py' (Figure 5);
   4) RSA or Geometry analysis code for fMRI and RNN in folder of ---RSA_Geometry/---, (Figure 2, 5).
+  5) MricroGL_visualization/ folder for plotting MRI images
