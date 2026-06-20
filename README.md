@@ -19,7 +19,8 @@
   3) run 'S2_prepare_RNNforRDM.m' for extracting the hidden layer activations for RSA analysis;
   4) run 'S03_1_Decoding_mvpa_ners_rois_individuals.m' for Gaussian fitting for errors;
   5) run 'S03_2_Decoding_mvpa_diffs_rois_individuals.m' for Gaussian fitting for difficulty;
-  6) run 'S04_Decoding_mvpa_NersDiffs_rois_individuals.m' for 3-D visualization for combination of the errors and difficulty.
+  6) run 'S04_1_Decoding_mvpa_NersDiffs_rois_individuals.m' for 3-D visualization for combination of the errors and difficulty;
+  7) run 'S05_2beta_subspaceDetect_RNN_BOLD.m' for null-subspace (task-irrelevant) analysis.
 
   ## GLM analysis for fMRI, MVPA for fMRI, RSA for fMRI and RNN
   (4)------------------ folder: fMRI/
