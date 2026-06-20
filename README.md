@@ -3,9 +3,10 @@
   ## for behavioral analysis and Bayesian modelling (Figure 1)
   (1)------------------ folder: MRI_behavioural/
   
-  1) run 'm_1_psychometric_switch.m' for Bayesian modelling;
+  1) run 'm_1_1_psychometric_switch.m' for Bayesian modelling;
   2) run the .py scripts in each of the subfolder in Model_fitting_Tom/ folder, for preparing the data and alterative model fitting;
-  3) run 'm_5_CollectData_for_ModelCompare.m' for model comparing (LL, AIC, BIC);
+  3) run 'm_2_CollectData_for_ModelCompare.m' for model comparing (LL, AIC, BIC);
+  4) Other scripts for descriptive logistic regression and parameter recovery.
   
    ## for RNN simulation (Figure 2)
  (2) ------------------ folder: RNN/DeepRL_RNN/script/
