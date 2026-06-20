@@ -26,7 +26,7 @@
   (4)------------------ folder: fMRI/
   
   1) Due to the limitation of upload, in this folder, only the 2nd results of each GLM were upload.
-  2) GLM analysis code for MRI in folder of ---spmGLM/---, the order was marker by 'Sxxxxx.m' (Figure 3, 4);
+  2) GLM analysis code for MRI in folder of ---spmGLM/---, the order was marker by 'Sxxxxx.m' (Figure 3, 4); 'S9xxxxx.m' for the GLM parameter modulation analysis of number of errors, difficulty, and confidence, just mute some part for GLM for specific variables. 
   3) MVPA code for MRI in folder of ---MVPA/---, the order was marker by 'Sxxxxx.py' (Figure 5);
   4) RSA or Geometry analysis code for fMRI and RNN in folder of ---RSA_Geometry/---, (Figure 2, 5).
   5) MricroGL_visualization/ folder for plotting MRI images
